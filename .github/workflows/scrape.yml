@@ -30,7 +30,7 @@ jobs:
         run: |
           git config user.name "Lead Finder Bot"
           git config user.email "bot@noreply.com"
+          git pull --rebase origin main
           git add leads.db reports/
           git diff --staged --quiet || git commit -m "Weekly leads — $(date -u +%Y-%m-%d)"
-          git pull --rebase origin main
           git push
