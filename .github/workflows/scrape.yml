@@ -6,7 +6,7 @@ on:
   workflow_dispatch:        # Manual trigger button
 
 permissions:
-  contents: write           # Allows the script to commit files back to the repo
+  contents: write
 
 jobs:
   find-leads:
@@ -14,7 +14,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0        # Full history, not shallow clone
+          fetch-depth: 0
+          ref: main
 
       - uses: actions/setup-python@v5
         with:
@@ -29,10 +30,9 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
       - name: Commit results to repo
-        run: |
-          git config user.name "Lead Finder Bot"
-          git config user.email "bot@noreply.com"
-          git pull --rebase origin main
-          git add leads.db reports/
-          git diff --staged --quiet || git commit -m "Weekly leads — $(date -u +%Y-%m-%d)"
-          git push --force-with-lease origin main
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Weekly leads — ${{ env.TODAY }}"
+          file_pattern: "leads.db reports/*.md"
+        env:
+          TODAY: ${{ github.run_started_at }}
