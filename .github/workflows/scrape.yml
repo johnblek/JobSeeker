@@ -1,0 +1,35 @@
+name: Weekly Lead Finder
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'   # Every Monday at 9:00 AM UTC
+  workflow_dispatch:        # Manual trigger button
+
+permissions:
+  contents: write           # Allows the script to commit files back to the repo
+
+jobs:
+  find-leads:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4 google-genai
+
+      - name: Run lead finder
+        run: python lead_finder.py
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+      - name: Commit results to repo
+        run: |
+          git config user.name "Lead Finder Bot"
+          git config user.email "bot@noreply.com"
+          git add leads.db reports/
+          git diff --staged --quiet || git commit -m "Weekly leads — $(date -u +%Y-%m-%d)"
+          git push
