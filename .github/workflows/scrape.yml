@@ -2,8 +2,8 @@ name: Weekly Lead Finder
 
 on:
   schedule:
-    - cron: '0 9 * * 1'   # Every Monday at 9:00 AM UTC
-  workflow_dispatch:        # Manual trigger button
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -30,9 +30,11 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
       - name: Commit results to repo
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "Weekly leads — ${{ env.TODAY }}"
-          file_pattern: "leads.db reports/*.md"
-        env:
-          TODAY: ${{ github.run_started_at }}
+        run: |
+          git config user.name "Lead Finder Bot"
+          git config user.email "bot@noreply.com"
+          git fetch origin main
+          git reset --hard origin/main
+          git add leads.db reports/
+          git diff --staged --quiet || git commit -m "Weekly leads — $(date -u +%Y-%m-%d)"
+          git push
